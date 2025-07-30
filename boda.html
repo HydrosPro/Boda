@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yaroslay & Nelson - Nuestra Boda</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@300;400;600;700&family=Lato:wght@300;400;500&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Lato', sans-serif;
+            background: linear-gradient(135deg, #f5f5f0 0%, #e8e6e1 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .invitation-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            min-height: 100vh;
+            position: relative;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+        }
+        
+        .header-section {
+            height: 70vh;
+            background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.5)), url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800"><defs><linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:%23737D56;stop-opacity:1" /><stop offset="100%" style="stop-color:%235A6B43;stop-opacity:1" /></linearGradient></defs><rect width="1200" height="800" fill="url(%23bg)"/><g opacity="0.15"><circle cx="200" cy="150" r="80" fill="white"/><circle cx="800" cy="200" r="60" fill="white"/><circle cx="1000" cy="400" r="100" fill="white"/><circle cx="300" cy="600" r="40" fill="white"/></g></svg>');
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: white;
+            position: relative;
+        }
+        
+        .floating-petals {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        
+        .petal {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: rgba(255,255,255,0.7);
+            border-radius: 50% 0;
+            animation: float 15s infinite linear;
+        }
+        
+        .petal:nth-child(1) { left: 10%; animation-delay: 0s; }
+        .petal:nth-child(2) { left: 20%; animation-delay: 2s; }
+        .petal:nth-child(3) { left: 30%; animation-delay: 4s; }
+        .petal:nth-child(4) { left: 40%; animation-delay: 6s; }
+        .petal:nth-child(5) { left: 60%; animation-delay: 8s; }
+        .petal:nth-child(6) { left: 70%; animation-delay: 10s; }
+        .petal:nth-child(7) { left: 80%; animation-delay: 12s; }
+        .petal:nth-child(8) { left: 90%; animation-delay: 14s; }
+        
+        @keyframes float {
+            0% {
+                transform: translateY(-100px) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(calc(100vh + 100px)) rotate(360deg);
+                opacity: 0;
+            }
+        }
+        
+        .couple-names {
+            font-family: 'Playfair Display', serif;
+            font-size: 4rem;
+            font-weight: 300;
+            letter-spacing: 3px;
+            margin-bottom: 20px;
+            opacity: 0;
+            animation: fadeInUp 1.5s ease forwards;
+        }
+        
+        /* Foto de la pareja en el header */
+        .couple-photo {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid rgba(255,255,255,0.8);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            margin-bottom: 25px;
+            opacity: 0;
+            animation: fadeInUp 1.5s ease 0.3s forwards;
+            transition: transform 0.3s ease;
+        }
+        
+        .couple-photo:hover {
+            transform: scale(1.05);
+        }
+        
+        .wedding-date {
+            font-size: 1.3rem;
+            font-weight: 300;
+            letter-spacing: 2px;
+            margin-bottom: 30px;
+            opacity: 0;
+            animation: fadeInUp 1.5s ease 0.5s forwards;
+        }
+        
+        .ornament {
+            width: 150px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, white, transparent);
+            margin: 20px auto;
+            opacity: 0;
+            animation: fadeInUp 1.5s ease 1s forwards;
+        }
+        
+        .content-section {
+            padding: 80px 60px;
+            background: white;
+        }
+        
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            color: #3d3d3d;
+            text-align: center;
+            margin-bottom: 50px;
+            position: relative;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, #737D56, #5A6B43);
+            border-radius: 2px;
+        }
+        
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+        
+        .welcome-card {
+            background: linear-gradient(135deg, #faf9f7 0%, #f0ede8 100%);
+            padding: 50px 40px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid rgba(115,125,86,0.15);
+            margin-bottom: 60px;
+            max-width: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .welcome-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+        
+        /* Foto de fondo sutil en la tarjeta de bienvenida */
+        .welcome-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('foto.jpg') center/cover;
+            opacity: 0.05;
+            z-index: 1;
+        }
+        
+        .welcome-card > * {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .welcome-icon {
+            font-size: 4rem;
+            background: linear-gradient(135deg, #737D56, #5A6B43);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 25px;
+        }
+        
+        .welcome-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            color: #3d3d3d;
+            margin-bottom: 25px;
+        }
+        
+        .welcome-message {
+            font-size: 1.2rem;
+            color: #666666;
+            line-height: 1.8;
+            max-width: 800px;
+            margin: 0 auto;
+            font-style: italic;
+        }
+        
+        .countdown-card {
+            background: linear-gradient(135deg, #faf9f7 0%, #f0ede8 100%);
+            color: #3d3d3d;
+            border: 1px solid rgba(115,125,86,0.15);
+        }
+        
+        .countdown-card .detail-title {
+            color: #3d3d3d;
+        }
+        
+        .countdown-display {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 15px;
+        }
+        
+        .countdown-item {
+            text-align: center;
+        }
+        
+        .countdown-number {
+            display: block;
+            font-size: 2rem;
+            font-weight: bold;
+            font-family: 'Playfair Display', serif;
+            color: #3d3d3d;
+        }
+        
+        .countdown-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            color: #666666;
+        }
+        
+        .detail-card {
+            background: linear-gradient(135deg, #faf9f7 0%, #f0ede8 100%);
+            padding: 40px 30px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid rgba(115,125,86,0.15);
+        }
+        
+        .detail-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+        
+        .detail-icon {
+            font-size: 3rem;
+            background: linear-gradient(135deg, #737D56, #5A6B43);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+        }
+        
+        .detail-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            color: #3d3d3d;
+            margin-bottom: 15px;
+        }
+        
+        .detail-info {
+            font-size: 1.1rem;
+            color: #666666;
+            line-height: 1.6;
+        }
+        
+        .location-section {
+            background: linear-gradient(135deg, #737D56 0%, #5A6B43 100%);
+            color: white;
+            padding: 80px 60px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Foto de fondo sutil en la sección de ubicación */
+        .location-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('foto.jpg') center/cover;
+            opacity: 0.1;
+            z-index: 1;
+        }
+        
+        .location-section > * {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .location-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+        }
+        
+        .venue-name {
+            font-size: 1.8rem;
+            font-weight: 500;
+            margin-bottom: 15px;
+        }
+        
+        .venue-address {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+        
+        .map-button {
+            display: inline-block;
+            padding: 15px 40px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        
+        .map-button:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+        
+        .dress-code-section {
+            padding: 80px 60px;
+            background: #f0ede8;
+            text-align: center;
+        }
+        
+        .dress-code-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            color: #3d3d3d;
+            margin-bottom: 40px;
+        }
+        
+        .dress-code-info {
+            font-size: 1.3rem;
+            color: #666666;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.8;
+        }
+        
+        .dress-code-examples {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 40px;
+        }
+        
+        .dress-example {
+            text-align: center;
+        }
+        
+        .dress-icon {
+            font-size: 4rem;
+            background: linear-gradient(135deg, #737D56, #5A6B43);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 15px;
+        }
+        
+        .dress-label {
+            font-weight: 500;
+            color: #3d3d3d;
+        }
+        
+        .footer-section {
+            background: linear-gradient(135deg, #3d3d3d 0%, #4a4a4a 100%);
+            color: white;
+            padding: 60px;
+            text-align: center;
+        }
+        
+        .rsvp-section {
+            background: linear-gradient(135deg, #737D56 0%, #5A6B43 100%);
+            color: white;
+            padding: 60px;
+            text-align: center;
+        }
+        
+        .rsvp-button {
+            display: inline-block;
+            padding: 18px 45px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255,255,255,0.3);
+            margin-bottom: 20px;
+            letter-spacing: 1px;
+        }
+        
+        .rsvp-button:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        
+        .rsvp-button i {
+            margin-right: 10px;
+            font-size: 1.1rem;
+        }
+        
+        .footer-message {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+        
+        .footer-names {
+            font-size: 1.2rem;
+            opacity: 0.8;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .couple-names {
+                font-size: 2.5rem;
+            }
+            
+            .couple-photo {
+                width: 120px;
+                height: 120px;
+            }
+            
+            .welcome-icon {
+                width: 100px;
+                height: 100px;
+            }
+            
+            .content-section, .location-section, .dress-code-section, .footer-section {
+                padding: 40px 30px;
+            }
+            
+            .details-grid {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+            
+            .dress-code-examples {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .countdown-display {
+                gap: 15px;
+            }
+            
+            .countdown-number {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="invitation-container">
+        <header class="header-section">
+            <div class="floating-petals">
+                <div class="petal"></div>
+                <div class="petal"></div>
+                <div class="petal"></div>
+                <div class="petal"></div>
+                <div class="petal"></div>
+                <div class="petal"></div>
+                <div class="petal"></div>
+                <div class="petal"></div>
+            </div>
+            <img src="foto.jpg" alt="Yaroslay & Nelson" class="couple-photo">
+            <h1 class="couple-names">Yaroslay &amp; Nelson</h1>
+            <div class="ornament"></div>
+            <p class="wedding-date">21 de Febrero, 2026</p>
+        </header>
+        
+        <section class="content-section">
+            <h2 class="section-title">Detalles de la Celebración</h2>
+            
+            <div class="welcome-card">
+                <div class="welcome-icon">
+                    <i class="fas fa-heart"></i>
+                </div>
+                <h3 class="welcome-title">Con Inmensa Alegría</h3>
+                <p class="welcome-message">
+                    Nos sentimos profundamente felices de haber tomado esta hermosa decisión de unirnos en matrimonio. 
+                    Los invitamos con todo nuestro amor porque queremos compartir este momento tan importante y especial 
+                    de nuestras vidas junto a las personas que más queremos y apreciamos.
+                </p>
+            </div>
+            
+            <div class="details-grid">
+                <div class="detail-card">
+                    <div class="detail-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <h3 class="detail-title">Ceremonia y Consejos</h3>
+                    <p class="detail-info">
+                        8:00 PM<br>
+                        Seguida de la recepción<br>
+                        hasta la 1:00 AM
+                    </p>
+                </div>
+                
+                <div class="detail-card">
+                    <div class="detail-icon">
+                        <i class="fas fa-camera"></i>
+                    </div>
+                    <h3 class="detail-title">Photo Time</h3>
+                    <p class="detail-info">
+                        9:15 PM<br>
+                        Momento para capturar<br>
+                        los mejores recuerdos
+                    </p>
+                </div>
+                
+                <div class="detail-card">
+                    <div class="detail-icon">
+                        <i class="fas fa-user-friends"></i>
+                    </div>
+                    <h3 class="detail-title">Pista de Baile</h3>
+                    <p class="detail-info">
+                        10:00 PM<br>
+                        ¡Es hora de celebrar<br>
+                        y bailar juntos!
+                    </p>
+                </div>
+                
+                <div class="detail-card">
+                    <div class="detail-icon">
+                        <i class="fas fa-utensils"></i>
+                    </div>
+                    <h3 class="detail-title">Aperitivos y Comida</h3>
+                    <p class="detail-info">
+                        11:00 PM<br>
+                        Deliciosos platos<br>
+                        para disfrutar
+                    </p>
+                </div>
+                
+                <div class="detail-card">
+                    <div class="detail-icon">
+                        <i class="fas fa-magic"></i>
+                    </div>
+                    <h3 class="detail-title">Magic Mirror y Baile</h3>
+                    <p class="detail-info">
+                        12:00 AM<br>
+                        Diversión y baile<br>
+                        hasta el amanecer
+                    </p>
+                </div>
+                
+                <div class="detail-card countdown-card">
+                    <div class="detail-icon">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                    <h3 class="detail-title">Faltan</h3>
+                    <div class="countdown-display">
+                        <div class="countdown-item">
+                            <span class="countdown-number" id="days">0</span>
+                            <span class="countdown-label">Días</span>
+                        </div>
+                        <div class="countdown-item">
+                            <span class="countdown-number" id="hours">0</span>
+                            <span class="countdown-label">Horas</span>
+                        </div>
+                        <div class="countdown-item">
+                            <span class="countdown-number" id="minutes">0</span>
+                            <span class="countdown-label">Minutos</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section class="location-section">
+            <h2 class="location-title">Lugar de la Celebración</h2>
+            <div class="venue-name">Centro de convenciones Villacampestre</div>
+            <div class="venue-address">
+                Calle 3a #24-91<br>
+                Villa campestre, Barranquilla<br>
+                Colombia
+            </div>
+            <a href="https://maps.app.goo.gl/Bna4XKDNf9EaCsii7" target="_blank" class="map-button">
+                <i class="fas fa-map-marker-alt"></i> Ver en el Mapa
+            </a>
+        </section>
+        
+        <section class="dress-code-section">
+            <h2 class="dress-code-title">Código de Vestimenta</h2>
+            <p class="dress-code-info">
+                Te invitamos a vestir con elegancia para esta ocasión tan especial. 
+                Sugerimos colores en tonos pasteles o tierra, evitando el blanco y verde.
+            </p>
+            <div class="dress-code-examples">
+                <div class="dress-example">
+                    <div class="dress-icon">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <div class="dress-label">Formal Elegante</div>
+                </div>
+                <div class="dress-example">
+                    <div class="dress-icon">
+                        <i class="fas fa-female"></i>
+                    </div>
+                    <div class="dress-label">Cocktail</div>
+                </div>
+            </div>
+        </section>
+        
+        <section class="rsvp-section">
+            <a href="https://wa.me/573177548607?text=¡Hola%20Yaroslay%20y%20Nelson!%20Estoy%20muy%20feliz%20de%20poder%20acompañarlos%20en%20este%20día%20tan%20especial.%20¡Ahí%20estaré%20para%20celebrar%20con%20ustedes!%20💕" target="_blank" class="rsvp-button">
+                <i class="fab fa-whatsapp"></i> Confirmar Asistencia
+            </a>
+        </section>
+        
+        <footer class="footer-section">
+            <p class="footer-message">"El amor es la única fuerza capaz de transformar un instante en eternidad, un 'tú y yo' en un 'para siempre'."</p>
+            <p class="footer-names">Con amor, Yaroslay & Nelson</p>
+        </footer>
+    </div>
+
+    <script>
+        // Animación suave al hacer scroll
+        window.addEventListener('scroll', () => {
+            const scrolled = window.pageYOffset;
+            const parallax = document.querySelector('.header-section');
+            const speed = scrolled * 0.5;
+            parallax.style.transform = `translateY(${speed}px)`;
+        });
+
+        // Animación de entrada para las tarjetas
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Observar todas las tarjetas de detalles y la tarjeta de bienvenida
+        document.querySelectorAll('.detail-card, .welcome-card').forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(30px)';
+            card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(card);
+        });
+
+        // Función de conteo regresivo
+        function updateCountdown() {
+            const weddingDate = new Date('2026-02-21T20:00:00').getTime();
+            const now = new Date().getTime();
+            const distance = weddingDate - now;
+
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+
+            document.getElementById('days').textContent = days;
+            document.getElementById('hours').textContent = hours;
+            document.getElementById('minutes').textContent = minutes;
+
+            if (distance < 0) {
+                document.getElementById('days').textContent = "0";
+                document.getElementById('hours').textContent = "0";
+                document.getElementById('minutes').textContent = "0";
+            }
+        }
+
+        // Actualizar el conteo cada minuto
+        updateCountdown();
+        setInterval(updateCountdown, 60000);
+    </script>
+</body>
+</html>
