@@ -154,22 +154,6 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 .lb-nav.prev{left:1.25rem;} .lb-nav.next{right:1.25rem;}
 .lb-meta{margin-top:1.25rem;font-family:'EB Garamond',serif;font-style:italic;font-size:.95rem;color:var(--text3);letter-spacing:.04em;text-align:center;}
 
-/* ── MOBILE TOAST ── */
-.mob-toast{
-  position:fixed;bottom:5.5rem;left:50%;transform:translateX(-50%) translateY(20px);
-  z-index:400;
-  background:var(--text);color:var(--cream);
-  font-size:.75rem;letter-spacing:.04em;line-height:1.6;
-  padding:.75rem 1.25rem;
-  border-radius:6px;
-  text-align:center;
-  max-width:280px;width:90%;
-  opacity:0;pointer-events:none;
-  transition:opacity .3s, transform .3s;
-  box-shadow:0 4px 24px rgba(46,38,32,.18);
-}
-.mob-toast.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto;}
-.mob-toast strong{color:var(--warm);font-weight:400;}
 
 /* ── FOOTER ── */
 footer{text-align:center;padding:3rem 2rem;border-top:1px solid var(--border);color:var(--text3);}
@@ -262,9 +246,6 @@ footer{text-align:center;padding:3rem 2rem;border-top:1px solid var(--border);co
   <p class="footer-heart">con amor &amp; gratitud</p>
   <p class="footer-sub">Gracias por compartir este día con nosotros</p>
 </footer>
-
-<!-- ── MOBILE TOAST ── -->
-<div class="mob-toast" id="mobToast"></div>
 
 <!-- ── SELECTION BAR ── -->
 <div class="sel-bar" id="selBar">
@@ -441,44 +422,15 @@ async function downloadAll() {
   await downloadOneByOne(photos, document.getElementById('btnDlAll'), '↓ Descargar todas las fotos');
 }
 
-const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-const isIOS    = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-
 async function downloadFile(url, filename) {
   const res  = await fetch(url);
   const blob = await res.blob();
-
-  if (isIOS) {
-    // En iOS Safari el atributo download no funciona para guardar en galería.
-    // Abrimos la imagen en nueva pestaña para que el usuario la guarde
-    // con el botón nativo de compartir → "Guardar en Fotos".
-    const burl = URL.createObjectURL(blob);
-    window.open(burl, '_blank');
-    showMobToast('📱 <strong>iOS:</strong> Toca el ícono de compartir (□↑) y luego <strong>"Guardar en Fotos"</strong>');
-    setTimeout(() => URL.revokeObjectURL(burl), 60000);
-    return;
-  }
-
   const a    = document.createElement('a');
   const burl = URL.createObjectURL(blob);
   a.href = burl; a.download = filename;
   document.body.appendChild(a); a.click();
   document.body.removeChild(a);
   setTimeout(() => URL.revokeObjectURL(burl), 15000);
-
-  // En Android mostrar tip para mover a galería
-  if (isMobile) {
-    showMobToast('📱 Foto descargada · Ábrela desde <strong>Archivos → Descargas</strong> y toca <strong>"Guardar en Galería"</strong>');
-  }
-}
-
-let toastTimer = null;
-function showMobToast(msg) {
-  const t = document.getElementById('mobToast');
-  t.innerHTML = msg;
-  t.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), 5000);
 }
 
 // ══════════════════════════════════════════════
