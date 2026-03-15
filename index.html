@@ -164,6 +164,7 @@ footer{text-align:center;padding:3rem 2rem;border-top:1px solid var(--border);co
 @media(max-width:900px){.section{padding:3rem 1rem 2rem;}.cols-4,.cols-5{grid-template-columns:repeat(3,1fr);}}
 @media(max-width:600px){.cols-2,.cols-3,.cols-4,.cols-5{grid-template-columns:repeat(2,1fr)!important;}.gallery-controls{display:none!important;}.hero-names{font-size:clamp(2.2rem,10vw,3.5rem);}.lb-nav.prev{left:.5rem;}.lb-nav.next{right:.5rem;}}
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </head>
 <body>
 
@@ -419,7 +420,51 @@ async function downloadSelected() {
 }
 
 async function downloadAll() {
-  await downloadOneByOne(photos, document.getElementById('btnDlAll'), '↓ Descargar todas las fotos');
+  const btn = document.getElementById('btnDlAll');
+  const banner = document.getElementById('dlBanner');
+  btn.disabled = true;
+
+  // Mostrar progreso en el banner
+  const originalHtml = banner.innerHTML;
+  let done = 0;
+
+  const zip = new JSZip();
+  const folder = zip.folder('matrimonio-fotos');
+
+  const updateProgress = (n) => {
+    const pct = Math.round((n / photos.length) * 100);
+    banner.innerHTML = `
+      <p style="margin-bottom:.75rem;font-family:'EB Garamond',serif;font-style:italic;color:var(--text2);">
+        Preparando descarga… <strong style="font-style:normal;color:var(--warm2);">${pct}%</strong>
+      </p>
+      <div style="height:2px;background:var(--cream3);border-radius:1px;overflow:hidden;max-width:300px;margin:0 auto;">
+        <div style="height:100%;background:var(--warm2);width:${pct}%;transition:width .3s;"></div>
+      </div>`;
+  };
+
+  updateProgress(0);
+
+  // Descargar todas en paralelo y empacar en ZIP
+  await Promise.all(photos.map(async p => {
+    const res  = await fetch(p.rawUrl);
+    const blob = await res.blob();
+    folder.file(p.name, blob);
+    done++;
+    updateProgress(done);
+  }));
+
+  // Generar ZIP con compresión STORE — sin recodificar, calidad original
+  const zipBlob = await zip.generateAsync({ type: 'blob', compression: 'STORE' });
+  const a    = document.createElement('a');
+  const burl = URL.createObjectURL(zipBlob);
+  a.href = burl; a.download = 'matrimonio-fotos.zip';
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(burl), 30000);
+
+  // Restaurar banner
+  banner.innerHTML = originalHtml;
+  btn.disabled = false;
 }
 
 async function downloadFile(url, filename) {
