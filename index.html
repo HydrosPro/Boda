@@ -154,6 +154,23 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 .lb-nav.prev{left:1.25rem;} .lb-nav.next{right:1.25rem;}
 .lb-meta{margin-top:1.25rem;font-family:'EB Garamond',serif;font-style:italic;font-size:.95rem;color:var(--text3);letter-spacing:.04em;text-align:center;}
 
+/* ── MOBILE TOAST ── */
+.mob-toast{
+  position:fixed;bottom:5.5rem;left:50%;transform:translateX(-50%) translateY(20px);
+  z-index:400;
+  background:var(--text);color:var(--cream);
+  font-size:.75rem;letter-spacing:.04em;line-height:1.6;
+  padding:.75rem 1.25rem;
+  border-radius:6px;
+  text-align:center;
+  max-width:280px;width:90%;
+  opacity:0;pointer-events:none;
+  transition:opacity .3s, transform .3s;
+  box-shadow:0 4px 24px rgba(46,38,32,.18);
+}
+.mob-toast.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto;}
+.mob-toast strong{color:var(--warm);font-weight:400;}
+
 /* ── FOOTER ── */
 footer{text-align:center;padding:3rem 2rem;border-top:1px solid var(--border);color:var(--text3);}
 .footer-heart{font-family:'Playfair Display',serif;font-style:italic;font-size:1.1rem;color:var(--warm2);margin-bottom:.5rem;}
@@ -163,6 +180,7 @@ footer{text-align:center;padding:3rem 2rem;border-top:1px solid var(--border);co
 @media(max-width:900px){.section{padding:3rem 1rem 2rem;}.cols-4,.cols-5{grid-template-columns:repeat(3,1fr);}}
 @media(max-width:600px){.cols-3,.cols-4,.cols-5{grid-template-columns:repeat(2,1fr);}.hero-names{font-size:clamp(2.2rem,10vw,3.5rem);}.lb-nav.prev{left:.5rem;}.lb-nav.next{right:.5rem;}}
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </head>
 <body>
 
@@ -245,6 +263,9 @@ footer{text-align:center;padding:3rem 2rem;border-top:1px solid var(--border);co
   <p class="footer-heart">con amor &amp; gratitud</p>
   <p class="footer-sub">Gracias por compartir este día con nosotros</p>
 </footer>
+
+<!-- ── MOBILE TOAST ── -->
+<div class="mob-toast" id="mobToast"></div>
 
 <!-- ── SELECTION BAR ── -->
 <div class="sel-bar" id="selBar">
@@ -414,39 +435,110 @@ function updateSelBar() {
 
 async function downloadSelected() {
   const btn = document.getElementById('btnDlSel');
-  btn.textContent = 'Descargando…';
+  btn.textContent = 'Preparando ZIP…';
   btn.disabled = true;
   const list = photos.filter(p => selectedIds.has(p.name));
-  for (let i = 0; i < list.length; i++) {
-    await downloadFile(list[i].rawUrl, list[i].name);
-    await new Promise(r => setTimeout(r, 300));
-  }
+  const zipName = 'matrimonio-' + list.length + '-fotos.zip';
+  await downloadAsZip(list, zipName);
   btn.textContent = '↓ Descargar selección';
   btn.disabled = false;
 }
 
 async function downloadAll() {
   const btn = document.getElementById('btnDlAll');
-  btn.textContent = 'Descargando…';
+  btn.textContent = 'Preparando ZIP…';
   btn.disabled = true;
-  for (let i = 0; i < photos.length; i++) {
-    await downloadFile(photos[i].rawUrl, photos[i].name);
-    await new Promise(r => setTimeout(r, 300));
-  }
+  await downloadAsZip(photos, 'matrimonio-todas-las-fotos.zip');
   btn.textContent = '↓ Descargar todas las fotos';
   btn.disabled = false;
 }
 
+const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+const isIOS    = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+
 async function downloadFile(url, filename) {
-  // Fetch como blob para forzar descarga sin abrir en nueva pestaña
   const res  = await fetch(url);
   const blob = await res.blob();
+
+  if (isIOS) {
+    // En iOS Safari el atributo download no funciona para guardar en galería.
+    // Abrimos la imagen en nueva pestaña para que el usuario la guarde
+    // con el botón nativo de compartir → "Guardar en Fotos".
+    const burl = URL.createObjectURL(blob);
+    window.open(burl, '_blank');
+    showMobToast('📱 <strong>iOS:</strong> Toca el ícono de compartir (□↑) y luego <strong>"Guardar en Fotos"</strong>');
+    setTimeout(() => URL.revokeObjectURL(burl), 60000);
+    return;
+  }
+
   const a    = document.createElement('a');
   const burl = URL.createObjectURL(blob);
   a.href = burl; a.download = filename;
   document.body.appendChild(a); a.click();
   document.body.removeChild(a);
   setTimeout(() => URL.revokeObjectURL(burl), 15000);
+
+  // En Android mostrar tip para mover a galería
+  if (isMobile) {
+    showMobToast('📱 Foto descargada · Ábrela desde <strong>Archivos → Descargas</strong> y toca <strong>"Guardar en Galería"</strong>');
+  }
+}
+
+let toastTimer = null;
+function showMobToast(msg) {
+  const t = document.getElementById('mobToast');
+  t.innerHTML = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 5000);
+}
+
+// ══════════════════════════════════════════════
+// DESCARGA ZIP — una sola descarga con todas las fotos
+// Funciona en móvil (iOS y Android) sin bloqueos
+// ══════════════════════════════════════════════
+async function downloadAsZip(list, zipName) {
+  const zip = new JSZip();
+  const folder = zip.folder('fotos');
+
+  // Mostrar progreso en el banner
+  const banner = document.getElementById('dlBanner');
+  const originalHtml = banner.innerHTML;
+  let done = 0;
+
+  const updateProgress = () => {
+    done++;
+    const pct = Math.round((done / list.length) * 100);
+    banner.innerHTML = `
+      <p style="margin-bottom:.75rem;">Preparando descarga… <strong style="color:var(--warm2)">${pct}%</strong></p>
+      <div style="height:2px;background:var(--cream3);border-radius:1px;overflow:hidden;max-width:300px;margin:0 auto;">
+        <div style="height:100%;background:var(--warm2);width:${pct}%;transition:width .2s;"></div>
+      </div>`;
+  };
+
+  // Descargar todas las fotos en paralelo (más rápido)
+  await Promise.all(list.map(async p => {
+    const res  = await fetch(p.rawUrl);
+    const blob = await res.blob();
+    folder.file(p.name, blob);
+    updateProgress();
+  }));
+
+  // Generar y descargar el ZIP
+  const zipBlob = await zip.generateAsync({
+    type: 'blob',
+    compression: 'STORE' // sin recomprimir — preserva calidad original
+  });
+
+  const a    = document.createElement('a');
+  const burl = URL.createObjectURL(zipBlob);
+  a.href = burl; a.download = zipName;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(burl), 30000);
+
+  // Restaurar banner original
+  banner.innerHTML = originalHtml;
 }
 
 async function lbDownload() {
