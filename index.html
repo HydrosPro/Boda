@@ -107,7 +107,7 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 .state-sub{font-size:.82rem;color:var(--text3);}
 
 /* ── SELECTION ── */
-.photo-check{width:26px;height:26px;border-radius:50%;border:1.5px solid rgba(255,255,255,.7);background:rgba(46,38,32,.25);display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;position:absolute;top:.6rem;left:.6rem;}
+.photo-check{width:32px;height:32px;border-radius:50%;border:2px solid rgba(255,255,255,.85);background:rgba(46,38,32,.35);display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;position:absolute;top:.6rem;left:.6rem;z-index:10;cursor:pointer;backdrop-filter:blur(4px);}
 .photo-card.selected .photo-check{background:var(--warm);border-color:var(--warm);}
 .photo-check svg{display:none;}
 .photo-card.selected .photo-check svg{display:block;}
@@ -241,7 +241,7 @@ footer{text-align:center;padding:3rem 2rem;border-top:1px solid var(--border);co
 
 <!-- ── FOOTER ── -->
 <footer>
-  <p class="footer-heart">Con amor &amp; gratitud</p>
+  <p class="footer-heart">con amor &amp; gratitud</p>
   <p class="footer-sub">Gracias por compartir este día con nosotros</p>
 </footer>
 
@@ -357,15 +357,18 @@ function renderGallery() {
           </button>
         </div>
       </div>`;
-    // Click en el check o en la imagen con ctrl/cmd → toggle selección
-    // Click normal → lightbox
+    // Click en el check → siempre selecciona (stopPropagation para no abrir lightbox)
+    const checkEl = card.querySelector('.photo-check');
+    checkEl.addEventListener('click', e => {
+      e.stopPropagation();
+      e.preventDefault();
+      toggleSelect(p.name);
+    });
+
+    // Click en imagen → lightbox (solo si no es el check ni dl-btn)
     card.addEventListener('click', e => {
       if (e.target.closest('.dl-btn')) return;
-      if (e.target.closest('.photo-check') || e.ctrlKey || e.metaKey) {
-        e.preventDefault();
-        toggleSelect(p.name);
-        return;
-      }
+      if (e.target.closest('.photo-check')) return;
       openLb(i);
     });
     gallery.appendChild(card);
