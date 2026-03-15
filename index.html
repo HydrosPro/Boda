@@ -106,6 +106,34 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 .state-title{font-family:'Playfair Display',serif;font-weight:300;font-size:1.4rem;color:var(--text);opacity:.45;margin-bottom:.5rem;}
 .state-sub{font-size:.82rem;color:var(--text3);}
 
+/* ── SELECTION ── */
+.photo-check{width:26px;height:26px;border-radius:50%;border:1.5px solid rgba(255,255,255,.7);background:rgba(46,38,32,.25);display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;position:absolute;top:.6rem;left:.6rem;}
+.photo-card.selected .photo-check{background:var(--warm);border-color:var(--warm);}
+.photo-check svg{display:none;}
+.photo-card.selected .photo-check svg{display:block;}
+.photo-card.selected::after{content:'';position:absolute;inset:0;border:2.5px solid var(--warm);pointer-events:none;}
+.photo-card.selected .photo-overlay{opacity:1;}
+
+/* ── SELECTION BAR ── */
+.sel-bar{
+  position:fixed;bottom:0;left:0;right:0;z-index:300;
+  background:var(--text);
+  border-top:1px solid rgba(255,255,255,.08);
+  padding:.9rem 2rem;
+  display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;
+  transform:translateY(100%);transition:transform .3s cubic-bezier(.25,.46,.45,.94);
+}
+.sel-bar.visible{transform:translateY(0);}
+.sel-bar-left{display:flex;align-items:center;gap:1rem;}
+.sel-count{font-size:.78rem;letter-spacing:.08em;color:rgba(250,247,242,.7);}
+.sel-count strong{color:var(--warm);font-weight:400;}
+.sel-bar-right{display:flex;gap:.5rem;flex-wrap:wrap;}
+.btn-sel{font-family:'Jost',sans-serif;font-weight:300;font-size:.68rem;letter-spacing:.15em;text-transform:uppercase;padding:.5rem 1.1rem;border:1px solid rgba(255,255,255,.15);background:transparent;color:rgba(250,247,242,.8);cursor:pointer;transition:all .2s;}
+.btn-sel:hover{background:rgba(255,255,255,.08);color:var(--cream);}
+.btn-sel.gold{background:var(--warm);border-color:var(--warm);color:var(--text);font-weight:400;}
+.btn-sel.gold:hover{background:var(--warm2);border-color:var(--warm2);}
+.btn-sel.gold:disabled{opacity:.4;cursor:not-allowed;}
+
 /* ── DOWNLOAD BANNER ── */
 .dl-banner{background:var(--cream2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:2rem;text-align:center;display:none;}
 .dl-banner.visible{display:block;}
@@ -217,6 +245,17 @@ footer{text-align:center;padding:3rem 2rem;border-top:1px solid var(--border);co
   <p class="footer-sub">Gracias por compartir este día con nosotros</p>
 </footer>
 
+<!-- ── SELECTION BAR ── -->
+<div class="sel-bar" id="selBar">
+  <div class="sel-bar-left">
+    <div class="sel-count"><strong id="selCount">0</strong> fotos seleccionadas</div>
+    <button class="btn-sel" onclick="clearSelection()">Deseleccionar todo</button>
+  </div>
+  <div class="sel-bar-right">
+    <button class="btn-sel gold" id="btnDlSel" onclick="downloadSelected()" disabled>↓ Descargar selección</button>
+  </div>
+</div>
+
 <!-- ── LIGHTBOX ── -->
 <div class="lightbox" id="lightbox" onclick="if(event.target===this)closeLb()">
   <div class="lb-controls">
@@ -235,6 +274,7 @@ footer{text-align:center;padding:3rem 2rem;border-top:1px solid var(--border);co
 // ══════════════════════════════════════════════
 let CONFIG = { names: 'Nombre & Nombre', date: 'día · mes · año' };
 let photos = [];   // [{name, url, rawUrl}]
+let selectedIds = new Set();
 let lbIndex = -1;
 
 // ══════════════════════════════════════════════
@@ -301,10 +341,14 @@ function renderGallery() {
 
   photos.forEach((p, i) => {
     const card = document.createElement('div');
-    card.className = 'photo-card';
+    card.className = 'photo-card' + (selectedIds.has(p.name) ? ' selected' : '');
     card.style.animationDelay = Math.min(i * 0.045, 0.7) + 's';
+    card.dataset.name = p.name;
     card.innerHTML = `
       <img src="${p.url}" alt="${p.name}" loading="lazy">
+      <div class="photo-check">
+        <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5.5l2.5 2.5 4.5-5"/></svg>
+      </div>
       <div class="photo-overlay">
         <div class="photo-bottom">
           <span class="photo-name">${p.name}</span>
@@ -313,8 +357,15 @@ function renderGallery() {
           </button>
         </div>
       </div>`;
+    // Click en el check o en la imagen con ctrl/cmd → toggle selección
+    // Click normal → lightbox
     card.addEventListener('click', e => {
       if (e.target.closest('.dl-btn')) return;
+      if (e.target.closest('.photo-check') || e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        toggleSelect(p.name);
+        return;
+      }
       openLb(i);
     });
     gallery.appendChild(card);
@@ -328,6 +379,46 @@ async function dlOne(e, idx) {
   e.stopPropagation();
   const p = photos[idx];
   await downloadFile(p.rawUrl, p.name);
+}
+
+// ══════════════════════════════════════════════
+// SELECCIÓN
+// ══════════════════════════════════════════════
+function toggleSelect(name) {
+  if (selectedIds.has(name)) selectedIds.delete(name);
+  else selectedIds.add(name);
+  // Actualizar visual de la card sin re-renderizar todo
+  const card = document.querySelector(`.photo-card[data-name="${CSS.escape(name)}"]`);
+  if (card) card.classList.toggle('selected', selectedIds.has(name));
+  updateSelBar();
+}
+
+function clearSelection() {
+  selectedIds.clear();
+  document.querySelectorAll('.photo-card.selected').forEach(c => c.classList.remove('selected'));
+  updateSelBar();
+}
+
+function updateSelBar() {
+  const n = selectedIds.size;
+  document.getElementById('selCount').textContent = n;
+  document.getElementById('selBar').classList.toggle('visible', n > 0);
+  document.getElementById('btnDlSel').disabled = n === 0;
+  // Espacio para que el banner no quede tapado por la barra
+  document.getElementById('dlBanner').style.paddingBottom = n > 0 ? '5rem' : '2rem';
+}
+
+async function downloadSelected() {
+  const btn = document.getElementById('btnDlSel');
+  btn.textContent = 'Descargando…';
+  btn.disabled = true;
+  const list = photos.filter(p => selectedIds.has(p.name));
+  for (let i = 0; i < list.length; i++) {
+    await downloadFile(list[i].rawUrl, list[i].name);
+    await new Promise(r => setTimeout(r, 300));
+  }
+  btn.textContent = '↓ Descargar selección';
+  btn.disabled = false;
 }
 
 async function downloadAll() {
