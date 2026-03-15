@@ -53,11 +53,12 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 .btn-main{font-family:'Jost',sans-serif;font-weight:300;font-size:.72rem;letter-spacing:.25em;text-transform:uppercase;padding:.85rem 2.5rem;background:var(--text);color:var(--cream);border:none;cursor:pointer;transition:all .3s;}
 .btn-main:hover{background:var(--warm2);}
 
-.scroll-hint{position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:.5rem;opacity:0;animation:fadeUp 1s 1.2s ease forwards;}
+.scroll-hint{position:absolute;bottom:2rem;left:0;right:0;margin:0 auto;width:fit-content;display:flex;flex-direction:column;align-items:center;gap:.5rem;opacity:0;animation:scrollHintIn 1s 1.2s ease forwards;}
 .scroll-hint span{font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;color:var(--text3);}
 .scroll-arrow{width:1px;height:32px;background:linear-gradient(to bottom,var(--warm),transparent);animation:scrollP 2s 2s infinite;}
 
 @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes scrollHintIn{from{opacity:0}to{opacity:1}}
 @keyframes scrollP{0%,100%{opacity:.3}50%{opacity:1}}
 
 /* ── SECTION ── */
